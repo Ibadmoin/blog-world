@@ -8,6 +8,7 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 import {
   getFirestore,
@@ -60,7 +61,7 @@ const provider = new GoogleAuthProvider();
 
 const signBtn = document.getElementById("signUpBtn");
 
-signBtn.addEventListener("click", () => {
+signBtn && signBtn.addEventListener("click", () => {
     const firstName = document.getElementById("firstName");
     const lastName = document.getElementById("lastName");
 
@@ -159,11 +160,12 @@ signBtn.addEventListener("click", () => {
 
 
         // storing user details in firestore... (like username here.)
-        const docRef = await setDoc(collection(db, "users", uid), {
-            username: userName.value,
+        await setDoc(doc(db, "users", user.uid), {
+            firstName: firstName.value,
+            lastName :lastName.value ,
             email: email.value,
-
-        });
+            password: password.value,
+          });
 
         Swal.fire({
             title: "Account Created!",
@@ -205,7 +207,196 @@ function isStrongPassword(password) {
 
 }
 
+
+
+
+
+
+// login the existing users
+
+const loginBtn = document.getElementById("loginBtn");
+
+ loginBtn && loginBtn.addEventListener("click", () => {
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPass").value;
+  console.log(email,password);
+  signInWithEmailAndPassword(auth, email, password)
+    .then(async(userCredential) => {
+      // Signed in
+      const user = userCredential.user;
+      console.log(user);
+      const uid = user.uid;
+      localStorage.setItem("uid",uid)
+      await Swal.fire({
+        title: "Logged In successfully!",
+        text: "Please Wait.",
+        icon: "success",
+        confirmButtonText: "Enter",
+      })
+      window.location.href ='./home.html';
+      
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.log(errorMessage);
+      Swal.fire({
+        icon: 'error',
+        title :'Error! Email or password is incorrect!',
         
+      })
+
+    });
+});
+
+
+
+
+// changing state
+
+// state change:
+
+onAuthStateChanged(auth, (user) => {
+    const uid = localStorage.getItem("uid");
+    if (user && uid) {
+      console.log(user);
+    //   getUserData(user.uid);
+    //   getAllUsers(user.email);
+      if (location.pathname !== "/home.html" && location.pathname !== "/profile.html") {
+        location.href = "home.html";
+      }
+    } else {
+      if (
+        location.pathname !== "/index.html" &&
+        location.pathname !== "/signup.html"
+      ) {
+        location.href = "index.html";
+      }
+    }
+  });
+
+
+
+//   logout functionality
+
+
+
+const logoutBtn = document.getElementById("logout-btn");
+
+logoutBtn &&
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth)
+      .then(() => {
+        localStorage.removeItem("uid");
+        location.href = "index.html";
+      })
+      .catch((error) => {
+        Swal.fire({
+            icon: "error",
+            title: "Something went wrong!"
+        })
+      });
+  });
+
+
+
+        
+
+//   google login
+
+// // google singin
+
+// const googleBtn = document.getElementById("googleLogin");
+// googleBtn && googleBtn.addEventListener("click", () => {
+//   signInWithPopup(auth, provider)
+//     .then(async(result) => {
+//       // This gives you a Google Access Token. You can use it to access the Google API.
+//       const credential = GoogleAuthProvider.credentialFromResult(result);
+//       const token = credential.accessToken;
+//       // The signed-in user info.
+//       const user = result.user;
+//       // const uid = user.uid;
+//       const userEmail = user.email;
+//       const username = user.displayName;
+//       const profileUrl = user.photoURL;
+//       // extracted email username and profile image url;
+//       console.log(
+//         `Email=> ${userEmail} displayName=> ${username}, Image=> ${profileUrl}, users=
+//         ${user.uid}`
+//       );
+
+//       await setDoc(doc(db, "users", user.uid), {
+//         firstName: firstName.value,
+//         lastName :lastName.value ,
+//         email: email.value,
+//         password: password.value,
+//       });
+
+      
+//       console.log("User signed in with Google:", user);
+
+//       // IdP data available using getAdditionalUserInfo(result)
+//       // ...
+//     })
+//     .catch((error) => {
+//       // Handle Errors here.
+//       const errorCode = error.code;
+//       const errorMessage = error.message;
+//       // ...
+
+     
+//       console.log("====================================");
+//       console.log(errorMessage);
+//       console.log("====================================");
+//     });
+//   console.log("done scene");
+// });
+
+
+
+// // Forfot password functionality
+
+const forgotPass = document.getElementById("forgotPass");
+
+forgotPass.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  swal.fire({
+    title: "Forgot Password",
+    html: `  <form id="resetForm">
+        <label for="email">
+        <i class="fa-solid fa-envelope resetEmailIcon" style="color: #259af2;"></i>
+        <input type="email" id="resetEmail" class="reset-email" placeholder="Enter your email address">
+        </label>
+        <button type="submit" class="resetBtn theme-btn">Reset Password</button>
+      </form>`,
+    showCancelButton: true,
+    showConfirmButton: false,
+  });
+
+  const resetForm = document.getElementById("resetForm");
+  resetForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const resetEmail = document.getElementById("resetEmail").value;
+
+    sendPasswordResetEmail(auth, resetEmail)
+      .then(() => {
+        swal.fire(
+          "Email sent",
+          "Check your email for reset instructions.",
+          "success"
+        );
+      })
+      .catch((err) => {
+        const errorMessage = err.message;
+        console.log(errorMessage);
+        swal.fire("Error", errorMessage, "error");
+      });
+  });
+});
+
+
 
         
 
