@@ -1,0 +1,329 @@
+:root {
+    --primary-color: #0d63fd;
+    --secondary-color:#3d8bfd;
+    --white: white;
+    --text-color: white;
+    --black: #000;
+    --gray: gray;
+  }
+  
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  
+  body{
+    min-width: 300px;
+    min-height: 100vh;
+    background: var(--secondary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-form{
+    width: 80%;
+    min-height: 80vh;
+    background: var(--white);
+    display: flex;
+    justify-content: center;
+  }
+  
+  .left-side{
+    width: 40%;
+    height: 700px;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .left-side img {
+    width: 50%;
+    height: 200px;
+    background: #000;
+  }
+  
+  .left-side h3 {
+    color: white;
+    font-family: sans-serif;
+    text-align:center ;
+    font-weight: 700;
+  
+  }
+  .left-side span{
+    color: white;
+    font-family: sans-serif;
+    letter-spacing: 5px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+  }
+  .left-side p {
+    padding: 10px 25px 10px 25px ;
+    text-align: center;
+    color: white;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+  
+  .right-side{
+    background: var(--white);
+    width: 60%;
+    height: 700px;
+  }
+  
+  .form-top{
+    /* background: #000; */
+    display: flex;
+    height: 70px;
+    align-items: center;
+    gap: 30px;
+    justify-content: flex-end;
+    padding-right: 20px;
+  }
+  
+  .form-top p {
+    color: gray;
+    font-size: 1emem;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
+  }
+  
+  .form-top button {
+    /* margin-right: 5%; */
+    width: 190px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    text-transform: uppercase;
+    font-weight: bolder;
+    color: #259af2;
+    background: linear-gradient(90deg, #259af2 0%, transparent 100%);
+    background-size: 200% 100%;
+    background-position: right;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transition: background-position 0.5s;
+  }
+  
+  
+  .form-middle{
+    /* background: #000; */
+    width: 90%;
+    margin: 120px auto;
+    margin-bottom: 30px;
+    height: max-content;
+  
+  
+  }
+  .form-middle h2 {
+    font-size: 2em;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  
+  
+  }
+  .form-middle span {
+    font-size: 1em;
+    letter-spacing: 3px;
+    color: gray;
+  }
+  
+  label{
+    /* background: green; */
+    padding-left: 10px;
+    height: 60px;
+    position: relative;
+  }
+  label p {
+    /* background: yellow; */
+    margin-bottom: 5px;
+    color :gray;
+   
+  
+  }
+  label input{
+    width: 100%;
+    height: 30px;
+    padding: 20px;
+    padding-left: 35px;
+    font-size: 1.1em;
+    border: 1px solid #259af2;
+  }
+  
+  label input:focus{
+    outline: none;
+    border: 2px solid rgb(101, 158, 15);
+  }
+  label i {
+    position: absolute;
+    top: 52px;
+    margin-left: 4%;
+  
+    font-size: 1.2em;
+    color: #259af2;
+  }
+  .fa-key{
+    margin-left: 2%;
+  }
+  
+  
+  
+  .error{
+    /* background: #000 ; */
+    color: red;
+    margin:  0 auto;
+    margin-top: -15px;
+    display: none;
+  }
+  #error.show{
+    display: inline-block;
+  }
+  
+  .forgot{
+    /* background: #000; */
+    text-align: end;
+    margin-right: 10px;
+    margin-top: -20px;
+    text-decoration: none;
+    color: #259af2;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .loginbtn{
+    width: 180px;
+    height: 40px;
+    font-size: 1.5em;
+    text-transform: capitalize;
+    border: none;
+    margin: 0 auto;
+    border-radius: 5px;
+    background:var(--primary-color);
+    color: white;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transition: all .1s ease-out;
+  }
+  
+  .loginbtn:hover{
+    background: #2599f2b2;
+  }
+  .loginbtn:active{
+    transform: scale(0.9);
+  }
+  
+  .div  {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    height: 70px;
+    flex-direction: column;
+    margin-top: 30px;
+    gap: 30px;
+   
+  }
+  
+  .form-end{
+    /* background: #000; */
+    width: 80%;
+    margin: 0 auto;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    /* height: 60px; */
+
+  }
+  .form-end p {
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    color: gray;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-bottom: 5px;
+  }
+  .form-end button {
+
+  }
+  
+  
+   /* media query */
+  @media only screen and (max-width: 768px) {
+    
+  
+    .left-side{
+      display: none;
+    }
+    .right-side{
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .form-top{
+      width: 90%;
+      margin-top: 10px;
+      flex-direction: column;
+      gap: 10px;
+    
+      
+    }
+    .form-middle{
+      margin-top: 30px;
+    }
+    
+  }
+  
+  @media only screen and (max-width: 460px) {
+    .forgot{
+        bottom: 10%;
+    }
+  }
+  
+  
+  .err-border{
+    border: 1px solid red;
+  }
+  
+  
+  .signup-anchor{
+    text-decoration: none;
+    color: #259af2;
+  }
+  
+  
+  #resetForm label{
+    position: relative;
+  }
+  
+  .resetEmailIcon{
+    position: absolute;
+    top: 60%;
+    right: 180%;
+  }
+  
+  
+  button.theme-btn{
+    width: 180px;
+    height: 40px;
+    font-size: 1em;
+    text-transform: capitalize;
+    border: none;
+    margin: 0 auto;
+    border-radius: 5px;
+    background: var(--primary-color);
+    margin-top: 5px;
+    color: white;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transition: all .1s ease-out;
+  }
+  
+  button.theme-btn:hover{
+    background: var(--primary-color);
+  }
+  button.theme-btn:active{
+    transform: scale(0.9);
+  }
+  
+  
+  
+  
+  

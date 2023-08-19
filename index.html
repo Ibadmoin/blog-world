@@ -1,0 +1,88 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog-World</title>
+    <link rel="icon" href="./images/logo.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="login.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css"
+    />
+
+    <script
+      src="https://kit.fontawesome.com/b4fc311639.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <!-- login-form -->
+
+    <div class="login-form">
+      <div class="left-side">
+        <img src="./images/logo.png" alt="" />
+        <h3>Blog World</h3>
+        <span>Blogs which needed!</span>
+        <p>
+          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ullam in
+          quasi nulla aliquam mollitia pariatur excepturi, rem commodi omnis ab,
+          sit provident beatae tenetur id placeat nobis ratione veniam velit!
+        </p>
+      </div>
+      <div class="right-side">
+        <div class="form-top">
+          <p>Don't have an account!</p>
+          <a href="./signup.html"><button >Create Account</button></a>
+        </div>
+        <div class="form-middle">
+          <h2>Log into Company</h2>
+          <span>Enter your login credentials</span>
+          <label for="email">
+            <p>Email address</p>
+            <i class="fa-solid fa-envelope"></i>
+            <input
+              type="email"
+              placeholder="Enter your Email address"
+              id="loginEmail"
+            />
+          </label>
+          <label for="password">
+            <p>Password</p>
+            <i class="fa-solid fa-key"></i>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              id="loginPass"
+              
+            />
+          </label>
+          <div class="error" id="error">Invalid Email or Password!</div>
+
+          <div class="div">
+            
+          <a class="forgot" href="#" id="forgotPass">Forget Password?</a>
+
+          <button class="loginbtn" id="loginBtn">login</button>
+
+          </div>
+
+        </div>
+        <div class="form-end">
+            <p>Or login with</p>
+            <button class="theme-btn" id="googleLogin"> Continue with google</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- login-form -->
+
+    <!-- scripts -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+  </body>
+</html>
