@@ -229,6 +229,7 @@
   .end button{
     border: none;
     color: var(--primary-color);
+    transition: .3s ease;
   }
   .end button:hover{
 
