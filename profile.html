@@ -1,0 +1,87 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog-World</title>
+    <link rel="icon" href="./images/logo.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="home.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css"
+    />
+
+    <script
+      src="https://kit.fontawesome.com/b4fc311639.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+
+
+    <!-- dashboard -->
+    <div class="dashboard">
+
+        <div class="logo">
+            <div  class="logo-div"><img src="./images/logo.png" alt=""></div>
+            <h2>Profile</h2>
+        </div>
+
+        <div class="dropdown">
+            <button class="dropbtn">Dropdown</button>
+            <div class="dropdown-content">
+              <a href="">Profile</a>
+              <a href="./home.html">Dashboard</a>
+              <a href="#" class="red">Log Out</a>
+            </div>
+          </div>
+
+
+        
+    </div>
+    <!-- dashboard -->
+
+    <div class="container">
+
+        <!-- post blog section -->
+        <div class="profile-card">
+
+            <label for="img">
+
+                <i class="editKey"><img src="./images/pencil.png" alt=""></i>
+                
+            <img class="UserProfile" src="./images/square.webp" alt="">
+
+            </label>
+            <div class="name">
+                <h3>Muhammad Ibad </h3>
+                <i class="edit"><img src="./images/pencil.png" alt=""></i>
+
+
+            </div>
+
+            <h3>Password</h3>
+
+            <input type="text" class="theme-input" placeholder="Old Password">
+            <input type="text" class="theme-input" placeholder="News Password">
+            <input type="text" class="theme-input" placeholder="Repeat Password">
+
+          
+
+            <button class="theme-btn updateBtn">Update Password</button>
+            
+        </div>
+        <!-- post blog section -->
+
+       
+    </div>
+ 
+    <!-- scripts -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+  </body>
+</html>
