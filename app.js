@@ -267,8 +267,10 @@ onAuthStateChanged(auth, (user) => {
         console.log(user);
         getUserData(user.uid);
         //   getAllUsers(user.email);
-        if (location.pathname !== "/home.html" && location.pathname !== "/profile.html") {
+        if (location.pathname !== "/home.html" && location.pathname !== "/profile.html" && location.pathname !== "/blogs.html") {
             location.href = "home.html";
+
+
         }
     } else {
         if (
@@ -292,7 +294,7 @@ logoutBtn &&
     logoutBtn.addEventListener("click", () => {
         signOut(auth)
             .then(() => {
-                localStorage.removeItem("uid");
+                localStorage.clear();
                 location.href = "index.html";
             })
             .catch((error) => {
@@ -498,26 +500,26 @@ updateProfile &&
             return;
         }
 
-try{
-        const imageUrl = await uploadFile(fileInput.files[0]);
-        const washingtonRef = doc(db, "users", uid);
-        await updateDoc(washingtonRef, {
-            password: pass.value,
-            firstName: firstName,
+        try {
+            const imageUrl = await uploadFile(fileInput.files[0]);
+            const washingtonRef = doc(db, "users", uid);
+            await updateDoc(washingtonRef, {
+                password: pass.value,
+                firstName: firstName,
 
-            picture: imageUrl,
-        });
-     
-
-        Swal.fire({
-            icon: "success",
-            title: "User updated successfully",
-        });
+                picture: imageUrl,
+            });
 
 
-    }catch(err){
-        console.log(err);
-    }
+            Swal.fire({
+                icon: "success",
+                title: "User updated successfully",
+            });
+
+
+        } catch (err) {
+            console.log(err);
+        }
 
 
     });
@@ -606,85 +608,155 @@ const getUserData = async (uid) => {
 
 
 const post = document.getElementById("postBtn");
-post && post.addEventListener("click",async()=>{
+post && post.addEventListener("click", async () => {
     let title = document.getElementById("postTitle");
     let desc = document.getElementById("postDesc");
 
-title.addEventListener("input",()=>{
-    title.classList.remove("err-border")
-})
-desc.addEventListener("input",()=>{
-    desc.classList.remove("err-border")
-})
+    title.addEventListener("input", () => {
+        title.classList.remove("err-border")
+    })
+    desc.addEventListener("input", () => {
+        desc.classList.remove("err-border")
+    })
 
-    if((title.value < 5 || title.value > 50)){
+    if ((title.value < 5 || title.value > 50)) {
         title.classList.add("err-border");
         return;
     }
 
-    if((desc.value < 100 || desc > 3000)){
+    if ((desc.value < 100 || desc > 3000)) {
         desc.classList.add("err-border");
         return;
     }
 
-    await  addDoc(collection(db, "post"), {
+
+
+    await addDoc(collection(db, "post"), {
         postId: localStorage.getItem("uid"),
-        Title : title.value ,
+        Title: title.value,
         desc: desc.value,
         userName: localStorage.getItem("Username"),
         createdAt: serverTimestamp(),
-        userProfile : localStorage.getItem("UserProfile")
+        userProfile: localStorage.getItem("UserProfile")
 
 
-        
-      });
 
-      console.log("Success");
+    });
 
-      title.value = "";
-      desc.value = "";
+    console.log("Success");
+
+    title.value = "";
+    desc.value = "";
 
 
- 
+
 
 })
 
 
-const userBlog = document.getElementById("blogSec");
 
 
 
 var userId = localStorage.getItem("uid");
-const blogPost  =  async (userId) => {
+const blogPost = (userId) => {
     console.log("uid=>", userId);
 
 
     const q = query(
-      collection(db, "post"),
-      where("postId", "==", userId), // Filtering users with different email
-      orderBy("time")
+        collection(db, "post"),
+        where("postId", "==", userId), // Filtering users with different email
+        orderBy("createdAt", "desc")
     );
-  
-    const unsubscribe =  onSnapshot(q, (querySnapshot) => {
-      const blogs = [];
-      querySnapshot.forEach((doc) => {
-        // Iterating over the querySnapshot
-        blogs.push({ ...doc.data() });
-      });
-      console.log("====================================");
-      console.log(users);
-      console.log("====================================");
-  
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const blogs = [];
+        querySnapshot.forEach((doc) => {
+            // Iterating over the querySnapshot
+            blogs.push({ ...doc.data() });
+            console.log(blogs);
+
+        });
+
+
+        const userBlog = document.getElementById("blogSec");
+        blogs.map((blog) => {
+            console.log(blog);
+
+            function convertTimestampTo12HourFormat(timestamp) {
+                const date = new Date((timestamp.seconds * 1000) + (timestamp.nanoseconds / 1e6));
+                const period = date.getHours() >= 12 ? 'PM' : 'AM';
+                const formattedHours = (date.getHours() % 12 || 12).toString().padStart(2, '0');
+                const formattedMinutes = date.getMinutes().toString().padStart(2, '0');
+                const formattedSeconds = date.getSeconds().toString().padStart(2, '0');
+                return `${formattedHours}:${formattedMinutes}:${formattedSeconds} ${period}`;
+            }
+
+            const time12HourFormat = convertTimestampTo12HourFormat(blog.createdAt);
+
+            if (userBlog) {
+                userBlog.innerHTML += `
+                <div class="blog-Card">
+                <div class="top">
+                    <div class="img-wrapper">
+                        <img src="${blog.userProfile}" alt="">
+                    </div>
+                    <div class="detail-wrapper">
+                        <p class="title">${blog.Title}</p>
+                        <p class="moredetails">${blog.userName} - ${time12HourFormat}</p>
+                    </div>
+                </div>
+                <div class="middle">
+                   ${blog.desc}
+                </div>
+                <div class="end">
+                    <button id="deletePost">Delete</button>
+                    <button>Edit</button>
+                </div>
+            </div>`
+            }
+        })
+
+
     });
-  
+
+    console.log(document.getElementById('deletePost'));
+
+
     // Remember to unsubscribe when you're done with the listener (if needed)
     // unsubscribe();
-  };
+};
 
 
+
+//   function deletePost(postId) {
+//     Swal.fire({
+//         icon: "warning",
+//         title: "Are you sure you want to delete this post?",
+//         showCancelButton: true,
+//         confirmButtonText: "Yes, delete it!",
+//         cancelButtonText: "Cancel"
+//     }).then(async (result) => {
+//         if (result.isConfirmed) {
+//             try {
+//                 // Here, you can call a function to delete the post using the postId
+//                 await deletePostFunction(postId); // Replace with the actual delete function
+
+//                 Swal.fire({
+//                     icon: "success",
+//                     title: "Post deleted successfully!"
+//                 });
+//             } catch (error) {
+//                 console.error("Error deleting post:", error);
+//                 Swal.fire({
+//                     icon: "error",
+//                     title: "An error occurred while deleting the post."
+//                 });
+//             }
+//         }
+//     });
+// }
 
 blogPost(userId);
-
 
 
 
