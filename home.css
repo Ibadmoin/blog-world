@@ -360,3 +360,7 @@
   .hide{
     display: none;
   }
+
+  .err-border{
+    border: 1px solid red !important;
+  }

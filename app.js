@@ -605,6 +605,86 @@ const getUserData = async (uid) => {
 
 
 
+const post = document.getElementById("postBtn");
+post && post.addEventListener("click",async()=>{
+    let title = document.getElementById("postTitle");
+    let desc = document.getElementById("postDesc");
+
+title.addEventListener("input",()=>{
+    title.classList.remove("err-border")
+})
+desc.addEventListener("input",()=>{
+    desc.classList.remove("err-border")
+})
+
+    if((title.value < 5 || title.value > 50)){
+        title.classList.add("err-border");
+        return;
+    }
+
+    if((desc.value < 100 || desc > 3000)){
+        desc.classList.add("err-border");
+        return;
+    }
+
+    await  addDoc(collection(db, "post"), {
+        postId: localStorage.getItem("uid"),
+        Title : title.value ,
+        desc: desc.value,
+        userName: localStorage.getItem("Username"),
+        createdAt: serverTimestamp(),
+        userProfile : localStorage.getItem("UserProfile")
+
+
+        
+      });
+
+      console.log("Success");
+
+      title.value = "";
+      desc.value = "";
+
+
+ 
+
+})
+
+
+const userBlog = document.getElementById("blogSec");
+
+
+
+var userId = localStorage.getItem("uid");
+const blogPost  =  async (userId) => {
+    console.log("uid=>", userId);
+
+
+    const q = query(
+      collection(db, "post"),
+      where("postId", "==", userId), // Filtering users with different email
+      orderBy("time")
+    );
+  
+    const unsubscribe =  onSnapshot(q, (querySnapshot) => {
+      const blogs = [];
+      querySnapshot.forEach((doc) => {
+        // Iterating over the querySnapshot
+        blogs.push({ ...doc.data() });
+      });
+      console.log("====================================");
+      console.log(users);
+      console.log("====================================");
+  
+    });
+  
+    // Remember to unsubscribe when you're done with the listener (if needed)
+    // unsubscribe();
+  };
+
+
+
+blogPost(userId);
+
 
 
 
