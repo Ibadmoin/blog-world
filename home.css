@@ -355,3 +355,8 @@
   .red:hover{
     color: red !important;
   }
+
+
+  .hide{
+    display: none;
+  }

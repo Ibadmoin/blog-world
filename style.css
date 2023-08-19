@@ -55,9 +55,12 @@
 
 /* drop down */
 .dropbtn {
-  background-color: var(--secondary-color);
   color: white;
   padding: 16px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+ 
   font-size: 16px;
   border: none;
   margin-left: -20%;
@@ -66,6 +69,9 @@
 .dropdown {
   position: relative;
   display: inline-block;
+}
+.dropdown img {
+
 }
 
 .dropdown-content {
@@ -89,4 +95,4 @@
 
 .dropdown:hover .dropdown-content {display: block;}
 
-.dropdown:hover .dropbtn {background-color:var(--primary-color);}
+.dropdown:hover .dropbtn {background-color:var(--secondary-color);}
