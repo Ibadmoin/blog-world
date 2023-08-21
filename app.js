@@ -57,6 +57,9 @@ const storage = getStorage();
 // Initilaing provider for google
 const provider = new GoogleAuthProvider();
 
+// loder divs
+const loaderContainer = document.getElementById("loader-container");
+const profileContainer = document.getElementById("profile-container");
 // creating a user
 
 // Signup creating a user
@@ -168,6 +171,15 @@ signBtn &&
           password: password.value,
           userName: `${firstName.value} ${lastName.value}`,
           picture: "./images/user.png",
+          createdAt: serverTimestamp(),
+          lastActivity: null,
+          followersCount: 0,
+          followingCount: 0,
+          profileBio: "",
+          socialMedia: {},
+          posts: [],
+          likedPost: [],
+          likedComments: [],
         });
         localStorage.setItem("userName", firstName);
 
@@ -243,7 +255,10 @@ loginBtn &&
 // state change:
 
 onAuthStateChanged(auth, (user) => {
-  const uid = localStorage.getItem("uid");
+  const uid = user.uid;
+  console.log("====================================");
+  console.log(uid);
+  console.log("====================================");
   if (user && uid) {
     console.log(user);
     getUserData(user.uid);
@@ -377,9 +392,9 @@ forgotPass &&
 
 // uploading image function to storage
 
-const uploadFile = (file) => {
+const uploadFile = (file, userUid) => {
   return new Promise((resolve, reject) => {
-    const mountainsRef = ref(storage, `images/${file.name}`);
+    const mountainsRef = ref(storage, `profilePictures/${userUid}`);
     const uploadTask = uploadBytesResumable(mountainsRef, file);
     uploadTask.on(
       "state_changed",
@@ -426,6 +441,7 @@ const updateProfile = document.getElementById("update-profile");
 
 updateProfile &&
   updateProfile.addEventListener("click", async () => {
+    showLoader();
     let fullName = document.getElementById("usernameUpdated");
     let uid = localStorage.getItem("uid");
     let oldPass = document.getElementById("oldPass");
@@ -434,37 +450,36 @@ updateProfile &&
     let password = localStorage.getItem("oldPass");
     localStorage.setItem("userName", fullName.innerText);
     let username = localStorage.getItem("userName");
-    
-// validating passwoprd fields
-if (password !== oldPass.value) {
-    Swal.fire({
-      icon: "error",
-      title: "Incorrect Old Password!",
-    });
-    return;
-  }
 
-  if (rPass.value !== pass.value) {
-    Swal.fire({
-      icon: "error",
-      title: "Password must be the same!",
-    });
-    return;
-  }
+    // validating passwoprd fields
+    if (password !== oldPass.value) {
+      hideLoader();
+      Swal.fire({
+        icon: "error",
+        title: "Incorrect Old Password!",
+      });
+      return;
+    }
 
-  if (isStrongPassword(pass)) {
-    Swal.fire({
-      icon: "warning",
-      title: "Your password is weak!",
-    });
-    return;
-  }
+    if (rPass.value !== pass.value) {
+      hideLoader();
+      Swal.fire({
+        icon: "error",
+        title: "Password must be the same!",
+      });
+      return;
+    }
 
+    if (isStrongPassword(pass.value)) {
+      hideLoader();
+      Swal.fire({
+        icon: "warning",
+        title: "Your password is weak!",
+      });
+      return;
+    }
 
-
-
-
-// updating firebase auth Pass 
+    // updating firebase auth Pass
     const user = auth.currentUser;
     try {
       // Re-authenticate the user with their current password
@@ -472,33 +487,37 @@ if (password !== oldPass.value) {
         user.email,
         oldPass.value
       );
-      await reauthenticateWithCredential(user,credentials);
+
+      await reauthenticateWithCredential(user, credentials);
 
       // Update the password
-      await updatePassword(user,pass.value);
+      await updatePassword(user, pass.value);
       console.log("Password updated successfully");
       let imageUrl = null;
-    if (fileInput.files[0]) {
-       imageUrl = await uploadFile(fileInput.files[0]);
+      if (fileInput.files[0]) {
+        imageUrl = await uploadFile(fileInput.files[0], uid);
       }
       // Update other user profile data
       const washingtonRef = doc(db, "users", uid);
-      const updateData={
+      const updateData = {
         password: pass.value,
-        userName: username,
+      };
+      if (username) {
+        updateData.userName = username;
       }
       if (imageUrl) {
         updateData.picture = imageUrl;
       }
 
-      await updateDoc(washingtonRef, updateData)
-
+      await updateDoc(washingtonRef, updateData);
+      hideLoader();
 
       Swal.fire({
         icon: "success",
         title: "User updated successfully",
       });
     } catch (error) {
+      hideLoader();
       console.error("Error updating password:", error);
       Swal.fire({
         icon: "error",
@@ -510,65 +529,116 @@ if (password !== oldPass.value) {
 //   getting user data
 
 // getting login user data
+let editBtn = document.getElementById("editName");
+let updateBtn = document.getElementById("updateName");
+let fullName = document.getElementById("usernameUpdated");
 
-let editBTn = document.getElementById("editName");
-editBTn &&
-  editBTn.addEventListener("click", () => {
-    let fullName = document.getElementById("usernameUpdated");
-    console.log(fullName.innerText);
+editBtn &&
+  editBtn.addEventListener("click", () => {
     fullName.contentEditable = true;
     fullName.style.border = "1px solid red";
     fullName.style.padding = "10px";
     fullName.focus();
-    editBTn.classList.add("hide");
-    let updatebtn = document.getElementById("updateName");
-    updatebtn.classList.remove("hide");
+    editBtn.classList.add("hide");
+    updateBtn.classList.remove("hide");
   });
-let updatebtn = document.getElementById("updateName");
-updatebtn &&
-  updatebtn.addEventListener("click", () => {
-    let fullName = document.getElementById("usernameUpdated");
-    console.log(fullName.innerText);
-    fullName.contentEditable = false;
-    fullName.style.border = "none";
-    fullName.style.padding = "10px";
-    editBTn.classList.remove("hide");
-    let updatebtn = document.getElementById("updateName");
-    updatebtn.classList.add("hide");
+
+// Handle the update on blur (when the field loses focus)
+fullName &&
+  fullName.addEventListener("blur", () => {
+    if (fullName.textContent.length >= 3) {
+      fullName.contentEditable = false;
+      fullName.style.border = "none";
+      fullName.style.padding = "10px";
+      editBtn.classList.remove("hide");
+      updateBtn.classList.add("hide");
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Username must be at least 3 characters long",
+      }).then(() => {
+        fullName.focus();
+      });
+    }
   });
+
+updateBtn &&
+  updateBtn.addEventListener("click", () => {
+    if (fullName.textContent.length >= 3) {
+      // Apply the changes
+      fullName.contentEditable = false;
+      fullName.style.border = "none";
+      fullName.style.padding = "10px";
+      editBtn.classList.remove("hide");
+      updateBtn.classList.add("hide");
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Username must be at least 3 characters long",
+      });
+    }
+  });
+
+// Function to show loader and blur content
+function showLoader() {
+  loaderContainer.style.display = "inline-block";
+  profileContainer.style.filter = "blur(5px)";
+}
+
+// Function to hide loader and unblur content
+function hideLoader() {
+  loaderContainer.style.display = "none";
+  profileContainer.style.filter = "none";
+}
 
 const getUserData = async (uid) => {
   const docRef = doc(db, "users", uid);
   const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    let UserProfileurl = localStorage.getItem("UserProfile");
-    console.log(UserProfileurl);
-    if (UserProfileurl) {
-      document.getElementById("profileImg").src = UserProfileurl;
-    }
-
-    let userProfile = document.getElementById("updatedImg");
-    let userProfileMain = document.getElementById("profileImg");
-    let fullName = document.getElementById("usernameUpdated");
-
-    // console.log(password);
-    if (location.pathname === "/profile.html") {
-        const unsub = onSnapshot(doc(db, "users", uid), (doc) => {
-            fullName.innerText = doc.data().userName;
-            let password = doc.data().password; 
-            localStorage.setItem("oldPass", password);
-        console.log("Current data: ", doc.data());
-      });
-      // fullName.innerHTML = docSnap.data().name;
-      if (docSnap.data().picture) {
-        userProfile.src = docSnap.data().picture;
-        localStorage.setItem("UserProfile", docSnap.data().picture);
-        userProfileMain.src = docSnap.data().picture;
+  showLoader();
+  try {
+    if (docSnap.exists()) {
+      let UserProfileurl = localStorage.getItem("UserProfile");
+      console.log(UserProfileurl);
+      if (UserProfileurl) {
+        document.getElementById("profileImg").src = UserProfileurl;
       }
-    } else {
-      console.log("No such document!");
+
+      let userProfile = document.getElementById("updatedImg");
+      let userProfileMain = document.getElementById("profileImg");
+      let fullName = document.getElementById("usernameUpdated");
+
+      // console.log(password);
+      if (location.pathname === "/profile.html") {
+        const unsub = onSnapshot(doc(db, "users", uid), (doc) => {
+          fullName.innerText = doc.data().userName;
+          let password = doc.data().password;
+          localStorage.setItem("oldPass", password);
+          console.log("Current data: ", doc.data());
+        });
+        // fullName.innerHTML = docSnap.data().name;
+        if (docSnap.data().picture) {
+          userProfile.src = docSnap.data().picture;
+          localStorage.setItem("UserProfile", docSnap.data().picture);
+          userProfileMain.src = docSnap.data().picture;
+        }
+        hideLoader();
+      } else if (location.pathname === "/home.html") {
+        const unsub = onSnapshot(doc(db, "users", uid), (doc) => {
+          let password = doc.data().password;
+          localStorage.setItem("oldPass", password);
+          console.log("Current data: ", doc.data());
+        });
+        if (docSnap.data().picture) {
+          localStorage.setItem("UserProfile", docSnap.data().picture);
+          userProfileMain.src = docSnap.data().picture;
+          hideLoader();
+        }
+      } else {
+        hideLoader();
+      }
     }
+  } catch (err) {
+    console.log("error =>", err);
   }
 };
 
@@ -585,97 +655,152 @@ post &&
       desc.classList.remove("err-border");
     });
 
-    if (title.value < 5 || title.value > 50) {
+    if (title.value.length < 5 || title.value.length > 50) {
       title.classList.add("err-border");
       return;
     }
 
-    if (desc.value < 100 || desc > 3000) {
+    if (desc.value.length < 50 || desc.value.length > 3000) {
       desc.classList.add("err-border");
       return;
     }
 
-    await addDoc(collection(db, "post"), {
-      postId: localStorage.getItem("uid"),
-      Title: title.value,
-      desc: desc.value,
-      userName: localStorage.getItem("Username"),
-      createdAt: serverTimestamp(),
-      userProfile: localStorage.getItem("UserProfile"),
-    });
+    // If both title and description pass validation
+    if (
+      title.value.length >= 5 &&
+      title.value.length <= 50 &&
+      desc.value.length >= 50 &&
+      desc.value.length <= 3000
+    ) {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnapshot = await getDoc(userDocRef);
 
-    console.log("Success");
-
-    title.value = "";
-    desc.value = "";
+          if (userDocSnapshot.exists()) {
+            const userData = userDocSnapshot.data();
+            await addDoc(collection(db, "posts"), {
+              title: title.value,
+              description: desc.value,
+              authorId: user.uid,
+              createdAt: serverTimestamp(),
+              likeCount: 0,
+            });
+            Swal.fire({
+              icon: "success",
+              title: "Post has been Published!",
+            });
+            title.value = "";
+            desc.value = "";
+          }
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "could'nt publish post try again!:",
+        });
+        console.error("Error creating post:", error);
+      }
+    }
   });
 
-var userId = localStorage.getItem("uid");
+const userId = localStorage.getItem("uid");
 const blogPost = (userId) => {
-  console.log("uid=>", userId);
+  console.log(userId);
 
   const q = query(
-    collection(db, "post"),
-    where("postId", "==", userId), // Filtering users with different email
+    collection(db, "posts"),
+    where("authorId", "==", userId), // Filtering users with different email
     orderBy("createdAt", "desc")
   );
 
-  const unsubscribe = onSnapshot(q, (querySnapshot) => {
-    const blogs = [];
-    querySnapshot.forEach((doc) => {
-      // Iterating over the querySnapshot
-      blogs.push({ ...doc.data() });
-      console.log(blogs);
-    });
+  const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+    const userBlogs = [];
+    querySnapshot.forEach(async (postDoc) => {
+      const postData = postDoc.data();
+      const authorId = postData.authorId;
 
-    const userBlog = document.getElementById("blogSec");
-    blogs.map((blog) => {
-      console.log(blog);
+      const authorDocRef = doc(db, "users", authorId);
+      const authorDocSnapshot = await getDoc(authorDocRef);
 
-      function convertTimestampTo12HourFormat(timestamp) {
-        const date = new Date(
-          timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6
-        );
-        const period = date.getHours() >= 12 ? "PM" : "AM";
-        const formattedHours = (date.getHours() % 12 || 12)
-          .toString()
-          .padStart(2, "0");
-        const formattedMinutes = date.getMinutes().toString().padStart(2, "0");
-        const formattedSeconds = date.getSeconds().toString().padStart(2, "0");
-        return `${formattedHours}:${formattedMinutes}:${formattedSeconds} ${period}`;
-      }
-
-      const time12HourFormat = convertTimestampTo12HourFormat(blog.createdAt);
-
-      if (userBlog) {
-        userBlog.innerHTML += `
-                <div class="blog-Card">
-                <div class="top">
-                    <div class="img-wrapper">
-                        <img src="${blog.userProfile}" alt="">
-                    </div>
-                    <div class="detail-wrapper">
-                        <p class="title">${blog.Title}</p>
-                        <p class="moredetails">${blog.userName} - ${time12HourFormat}</p>
-                    </div>
+      if (authorDocSnapshot.exists()) {
+        const authordata = authorDocSnapshot.data();
+        const postWithAuthorInfo = {
+          ...postData,
+          authorName: authordata.userName,
+          authorProfilePicture: authordata.picture,
+        };
+        userBlogs.push(postWithAuthorInfo);
+        console.log("====================================");
+        console.log(userBlogs);
+        console.log("====================================");
+        const blogsec = document.getElementById("blogSec");
+        blogsec.innerHTML = "";
+        userBlogs.map((blogs) => {
+          console.log(blogs);
+          const {
+            title,
+            likeCount,
+            description,
+            authorName,
+            authorProfilePicture,
+            createdAt,
+          } = blogs;
+          console.log(convertTimestamp(createdAt));
+          blogsec.innerHTML += ` <div class="blog-Card">
+            <div class="top">
+                <div class="img-wrapper">
+                    <img src="${authorProfilePicture}" alt="">
                 </div>
-                <div class="middle">
-                   ${blog.desc}
+                <div class="detail-wrapper">
+                    <p class="title">${title}</p>
+                    <p class="moredetails">${authorName} -${convertTimestamp(createdAt)}</p>
                 </div>
-                <div class="end">
-                    <button id="deletePost">Delete</button>
-                    <button>Edit</button>
-                </div>
-            </div>`;
+            </div>
+            <div class="middle">
+               ${description}
+            </div>
+            <div class="end">
+              
+            <button id="likeBtn"  data-post-id="${blogs.postId}">
+              Like (${likeCount})</button>
+              
+                <button>Delete</button>
+                <button>Edit</button>
+            </div>
+        </div>`;
+        });
       }
     });
   });
 
-  console.log(document.getElementById("deletePost"));
+
+  function convertTimestamp(timestamp) {
+    const date = timestamp.toDate();
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: true,
+    };
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+  }
+  
 
   // Remember to unsubscribe when you're done with the listener (if needed)
   // unsubscribe();
 };
+
+// like post btn
+
+// console.log(document.getElementById("deletePost"));
+
+// Remember to unsubscribe when you're done with the listener (if needed)
+// unsubscribe();
 
 //   function deletePost(postId) {
 //     Swal.fire({
@@ -706,3 +831,5 @@ const blogPost = (userId) => {
 // }
 
 blogPost(userId);
+
+export { getFirestore, auth, app };

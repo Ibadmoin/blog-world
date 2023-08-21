@@ -95,30 +95,7 @@
       transform: scale(0.9);
     }
   
-    label  {
-      position: relative;
-  
-    }
-  
-    label i {
-      position: absolute;
-      top: 50%;
-      left: 10px;
-    }
-    .fa-user{
-      left: 0%;
-      top: 53%;
-    }
-  
-    .fa-envelope{
-      top: 53%;
-      left: 0%;
-    }
-    .fa-key{
-      top: 54%;
-      left: 2%;
-    }
-  
+   
     .have-acc{
       text-align: end;
       text-decoration: none;
