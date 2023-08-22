@@ -26,6 +26,8 @@ import {
   getDocs,
   addDoc,
   serverTimestamp,
+  deleteDoc,
+  
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import {
   getStorage,
@@ -228,7 +230,7 @@ loginBtn &&
       .then(async (userCredential) => {
         // Signed in
         const user = userCredential.user;
-        console.log(user);
+        // console.log(user);
         const uid = user.uid;
         localStorage.setItem("uid", uid);
         await Swal.fire({
@@ -256,11 +258,9 @@ loginBtn &&
 
 onAuthStateChanged(auth, (user) => {
   const uid = user.uid;
-  console.log("====================================");
-  console.log(uid);
-  console.log("====================================");
+
   if (user && uid) {
-    console.log(user);
+    // console.log(user);
     getUserData(user.uid);
     //   getAllUsers(user.email);
     if (
@@ -680,12 +680,17 @@ post &&
 
           if (userDocSnapshot.exists()) {
             const userData = userDocSnapshot.data();
-            await addDoc(collection(db, "posts"), {
+            const newPostRef = doc(collection(db, "posts"));
+            const postId = newPostRef.id;
+            // console.log(postId);
+            showLoader();
+            await setDoc(newPostRef, {
               title: title.value,
               description: desc.value,
               authorId: user.uid,
               createdAt: serverTimestamp(),
               likeCount: 0,
+              postId: postId,
             });
             Swal.fire({
               icon: "success",
@@ -694,6 +699,7 @@ post &&
             title.value = "";
             desc.value = "";
           }
+          hideLoader();
         }
       } catch (error) {
         Swal.fire({
@@ -702,12 +708,13 @@ post &&
         });
         console.error("Error creating post:", error);
       }
+      hideLoader();
     }
   });
 
 const userId = localStorage.getItem("uid");
 const blogPost = (userId) => {
-  console.log(userId);
+  // console.log(userId);
 
   const q = query(
     collection(db, "posts"),
@@ -732,13 +739,11 @@ const blogPost = (userId) => {
           authorProfilePicture: authordata.picture,
         };
         userBlogs.push(postWithAuthorInfo);
-        console.log("====================================");
-        console.log(userBlogs);
-        console.log("====================================");
+        // console.log(userBlogs);
         const blogsec = document.getElementById("blogSec");
         blogsec.innerHTML = "";
         userBlogs.map((blogs) => {
-          console.log(blogs);
+          // console.log(blogs);
           const {
             title,
             likeCount,
@@ -746,8 +751,11 @@ const blogPost = (userId) => {
             authorName,
             authorProfilePicture,
             createdAt,
+            postId,
           } = blogs;
-          console.log(convertTimestamp(createdAt));
+          // console.log(convertTimestamp(createdAt));
+          console.log(postId);
+
           blogsec.innerHTML += ` <div class="blog-Card">
             <div class="top">
                 <div class="img-wrapper">
@@ -755,41 +763,164 @@ const blogPost = (userId) => {
                 </div>
                 <div class="detail-wrapper">
                     <p class="title">${title}</p>
-                    <p class="moredetails">${authorName} -${convertTimestamp(createdAt)}</p>
+                    <p class="moredetails">${authorName} -${convertTimestamp(
+            createdAt
+          )}</p>
                 </div>
             </div>
             <div class="middle">
                ${description}
             </div>
             <div class="end">
+          
               
-            <button id="likeBtn"  data-post-id="${blogs.postId}">
+            <button id="likeBtn"  data-post-id="${postId}">
               Like (${likeCount})</button>
               
-                <button>Delete</button>
-                <button>Edit</button>
+              <button class="deleteBtn" data-post-id="${postId}">Delete</button>
+                <button class="editPost" data-post-id="${postId}">Edit</button>
             </div>
         </div>`;
         });
+
+        attachedEventListeners();
       }
     });
   });
 
+  function attachedEventListeners() {
+    const likeButtons = document.querySelectorAll("#likeBtn");
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", async (event) => {
+        const postId = button.getAttribute("data-post-id");
+        console.log(postId);
+        // Call a function to handle the like process with the postId
+        // handleLike(postId);
+      });
+    });
+    const deleteButtons = document.querySelectorAll(".deleteBtn");
+    deleteButtons.forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        const postId = btn.getAttribute("data-post-id");
+        console.log(postId);
+        deletePost(postId);
+      });
+    });
+
+    const editBtn = document.querySelectorAll(".editPost");
+    editBtn.forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        const postid = btn.getAttribute("data-post-id");
+        console.log(postid);
+        editPost(postid);
+      });
+    });
+  }
+
+  async function deletePost(postId) {
+    const result = await Swal.fire({
+      icons: "warning",
+      title: "Are you sure!",
+      text: `You won't be able to revert this!`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete it!",
+      customClass: {
+        confirmButton: "swal-confirm-button", // Add a custom CSS class
+      },
+    });
+    if (result.isConfirmed) {
+      try {
+        showLoader();
+        await deleteDoc(doc(db, "posts", postId));
+        hideLoader();
+        Swal.fire({
+          icon: "success",
+          title: "Post deleted Successfully!",
+        }).then(() => {
+          console.log(userId);
+          blogPost(userId);
+        });
+      } catch (error) {
+        hideLoader();
+        Swal.fire({
+          icon: "error",
+          title: "Something Went Wrong! try again.",
+        });
+        console.log(error);
+      }
+    }
+  }
+
+  // editpost
+  async function editPost(postID) {
+    window.scrollTo(0, 0);
+    const title = document.getElementById("postTitle");
+    const desc = document.getElementById("postDesc");
+    const updateBtn = document.getElementById("Update-Btn");
+    const CancelBtn = document.getElementById("Cancel-Btn");
+    const postBtn = document.getElementById("postBtn");
+    postBtn.classList.add("hide");
+    updateBtn.classList.remove("hide");
+    CancelBtn.classList.remove("hide");
+
+    const postDocRef = doc(db, "posts", postID);
+    const postSnapshot = await getDoc(postDocRef);
+    const postData = postSnapshot.data();
+    console.log(postSnapshot.data());
+    const postTitle = postData.title;
+    const postDesc = postData.description;
+
+    title.value = postTitle;
+    desc.value = postDesc;
+
+    updateBtn &&
+      updateBtn.addEventListener("click", async () => {
+        console.log("u[dated hojayega");
+        const postDocRef = doc(db, "posts", postID);
+        showLoader();
+        await updateDoc(postDocRef, {
+          title: title.value,
+          description: desc.value,
+          createdAt: serverTimestamp(),
+        });
+        hideLoader();
+        Swal.fire({
+          icon: "success",
+          title: "Successfully Updated post",
+        });
+        title.value = "";
+        desc.value = "";
+        postBtn.classList.remove("hide");
+        updateBtn.classList.add("hide");
+        CancelBtn.classList.add("hide");
+      });
+
+    CancelBtn &&
+      CancelBtn.addEventListener("click", () => {
+        postBtn.classList.remove("hide");
+        updateBtn.classList.add("hide");
+        CancelBtn.classList.add("hide");
+        title.value = "";
+        desc.value = "";
+        return;
+      });
+
+    console.log(title, desc);
+  }
 
   function convertTimestamp(timestamp) {
     const date = timestamp.toDate();
     const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
       hour12: true,
     };
-    return new Intl.DateTimeFormat('en-US', options).format(date);
+    return new Intl.DateTimeFormat("en-US", options).format(date);
   }
-  
 
   // Remember to unsubscribe when you're done with the listener (if needed)
   // unsubscribe();
@@ -830,6 +961,8 @@ const blogPost = (userId) => {
 //     });
 // }
 
-blogPost(userId);
+if(location.pathname === "/home.html"){
+  blogPost(userId)
+}
 
-export { getFirestore, auth, app };
+export { hideLoader,showLoader,serverTimestamp, getFirestore, auth, app , getDoc,updateDoc,doc,deleteDoc,db,collection,onSnapshot };

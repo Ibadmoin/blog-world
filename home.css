@@ -382,3 +382,9 @@
   }
   
  
+.swal-confirm-button{
+  background: red !important;
+  border: none !important;
+  outline: none !important;
+}
+
