@@ -258,6 +258,7 @@ loginBtn &&
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPass").value;
     console.log(email, password);
+    flag = false;
     await signInWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         // Signed in
@@ -265,14 +266,17 @@ loginBtn &&
         // console.log(user);
         const uid = user.uid;
         localStorage.setItem("uid", uid);
-        flag = false;
         await Swal.fire({
           title: "Logged In successfully!",
           text: "Please Wait.",
           icon: "success",
           confirmButtonText: "Enter",
         });
-      })
+        flag = true;
+        window.location.href = "home.html"
+        // console.log("flag =>",flag);
+      }
+      )
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
