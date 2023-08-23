@@ -3,18 +3,6 @@ import{auth,serverTimestamp,db,collection,onSnapshot,doc,getDoc,hideLoader,showL
 
 
 
-auth.onAuthStateChanged((user) => {
-    if (user) {
-      // User is signed in, and user information is available
-      console.log(user);
-      const userId = user.uid;
-      console.log(userId);
-      // Now you can use the userId or perform other actions
-    } else {
-      // User is signed out
-      console.log("User is signed out");
-    }
-  });
 
 
 

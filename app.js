@@ -27,7 +27,6 @@ import {
   addDoc,
   serverTimestamp,
   deleteDoc,
-  
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import {
   getStorage,
@@ -62,6 +61,37 @@ const provider = new GoogleAuthProvider();
 // loder divs
 const loaderContainer = document.getElementById("loader-container");
 const profileContainer = document.getElementById("profile-container");
+
+// changing state
+
+// state change:
+
+var flag = true;
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // flag = true;
+    getUserData(user.uid);
+    // console.log(flag);
+    // console.log("user login hai");
+    if (
+      location.pathname !== "/home.html" &&
+      location.pathname !== "/profile.html" &&
+      location.pathname !== "/blogs.html" &&
+      flag
+    ) {
+      location.href = "home.html";
+    }
+  } else {
+    // console.log("user login  nahi hai");
+    hideLoader();
+    if (
+      location.pathname !== "/index.html" &&
+      location.pathname !== "/signup.html"
+    ) {
+      location.href = "index.html";
+    }
+  }
+});
 // creating a user
 
 // Signup creating a user
@@ -148,6 +178,7 @@ signBtn &&
       });
       return;
     }
+    flag = false;
 
     // create new user function starts here...
     createUserWithEmailAndPassword(
@@ -192,7 +223,8 @@ signBtn &&
           confirmButtonText: "OK",
         }).then(() => {
           // change the file location #000
-          window.location.href = "index.html";
+          flag = true;
+          window.location.href = "/home.html";
         });
       })
       .catch((error) => {
@@ -222,24 +254,24 @@ function isStrongPassword(password) {
 const loginBtn = document.getElementById("loginBtn");
 
 loginBtn &&
-  loginBtn.addEventListener("click", () => {
+  loginBtn.addEventListener("click", async () => {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPass").value;
     console.log(email, password);
-    signInWithEmailAndPassword(auth, email, password)
+    await signInWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         // Signed in
         const user = userCredential.user;
         // console.log(user);
         const uid = user.uid;
         localStorage.setItem("uid", uid);
+        flag = false;
         await Swal.fire({
           title: "Logged In successfully!",
           text: "Please Wait.",
           icon: "success",
           confirmButtonText: "Enter",
         });
-        window.location.href = "./home.html";
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -252,34 +284,6 @@ loginBtn &&
       });
   });
 
-// changing state
-
-// state change:
-
-onAuthStateChanged(auth, (user) => {
-  const uid = user.uid;
-
-  if (user && uid) {
-    // console.log(user);
-    getUserData(user.uid);
-    //   getAllUsers(user.email);
-    if (
-      location.pathname !== "/home.html" &&
-      location.pathname !== "/profile.html" &&
-      location.pathname !== "/blogs.html"
-    ) {
-      location.href = "home.html";
-    }
-  } else {
-    if (
-      location.pathname !== "/index.html" &&
-      location.pathname !== "/signup.html"
-    ) {
-      location.href = "index.html";
-    }
-  }
-});
-
 //   logout functionality
 
 const logoutBtn = document.getElementById("logout-btn");
@@ -290,6 +294,7 @@ logoutBtn &&
       .then(() => {
         localStorage.clear();
         location.href = "index.html";
+        flag = false;
       })
       .catch((error) => {
         Swal.fire({
@@ -298,54 +303,6 @@ logoutBtn &&
         });
       });
   });
-
-//   google login
-
-// // google singin
-
-// const googleBtn = document.getElementById("googleLogin");
-// googleBtn && googleBtn.addEventListener("click", () => {
-//   signInWithPopup(auth, provider)
-//     .then(async(result) => {
-//       // This gives you a Google Access Token. You can use it to access the Google API.
-//       const credential = GoogleAuthProvider.credentialFromResult(result);
-//       const token = credential.accessToken;
-//       // The signed-in user info.
-//       const user = result.user;
-//       // const uid = user.uid;
-//       const userEmail = user.email;
-//       const username = user.displayName;
-//       const profileUrl = user.photoURL;
-//       // extracted email username and profile image url;
-//       console.log(
-//         `Email=> ${userEmail} displayName=> ${username}, Image=> ${profileUrl}, users=
-//         ${user.uid}`
-//       );
-
-//       await setDoc(doc(db, "users", user.uid), {
-//         firstName: firstName.value,
-//         lastName :lastName.value ,
-//         email: email.value,
-//         password: password.value,
-//       });
-
-//       console.log("User signed in with Google:", user);
-
-//       // IdP data available using getAdditionalUserInfo(result)
-//       // ...
-//     })
-//     .catch((error) => {
-//       // Handle Errors here.
-//       const errorCode = error.code;
-//       const errorMessage = error.message;
-//       // ...
-
-//       console.log("====================================");
-//       console.log(errorMessage);
-//       console.log("====================================");
-//     });
-//   console.log("done scene");
-// });
 
 // // Forfot password functionality
 
@@ -627,6 +584,7 @@ const getUserData = async (uid) => {
           let password = doc.data().password;
           localStorage.setItem("oldPass", password);
           console.log("Current data: ", doc.data());
+          hideLoader();
         });
         if (docSnap.data().picture) {
           localStorage.setItem("UserProfile", docSnap.data().picture);
@@ -638,6 +596,7 @@ const getUserData = async (uid) => {
       }
     }
   } catch (err) {
+    hideLoader();
     console.log("error =>", err);
   }
 };
@@ -741,47 +700,50 @@ const blogPost = (userId) => {
         userBlogs.push(postWithAuthorInfo);
         // console.log(userBlogs);
         const blogsec = document.getElementById("blogSec");
-        blogsec.innerHTML = "";
-        userBlogs.map((blogs) => {
-          // console.log(blogs);
-          const {
-            title,
-            likeCount,
-            description,
-            authorName,
-            authorProfilePicture,
-            createdAt,
-            postId,
-          } = blogs;
-          // console.log(convertTimestamp(createdAt));
-          console.log(postId);
+        if (blogsec) {
+          blogsec.innerHTML = "";
 
-          blogsec.innerHTML += ` <div class="blog-Card">
-            <div class="top">
-                <div class="img-wrapper">
-                    <img src="${authorProfilePicture}" alt="">
-                </div>
-                <div class="detail-wrapper">
-                    <p class="title">${title}</p>
-                    <p class="moredetails">${authorName} -${convertTimestamp(
-            createdAt
-          )}</p>
-                </div>
-            </div>
-            <div class="middle">
-               ${description}
-            </div>
-            <div class="end">
-          
-              
-            <button id="likeBtn"  data-post-id="${postId}">
-              Like (${likeCount})</button>
-              
-              <button class="deleteBtn" data-post-id="${postId}">Delete</button>
-                <button class="editPost" data-post-id="${postId}">Edit</button>
-            </div>
-        </div>`;
-        });
+          userBlogs.map((blogs) => {
+            // console.log(blogs);
+            const {
+              title,
+              likeCount,
+              description,
+              authorName,
+              authorProfilePicture,
+              createdAt,
+              postId,
+            } = blogs;
+            // console.log(convertTimestamp(createdAt));
+            console.log(postId);
+
+            blogsec.innerHTML += ` <div class="blog-Card">
+              <div class="top">
+                  <div class="img-wrapper">
+                      <img src="${authorProfilePicture}" alt="">
+                  </div>
+                  <div class="detail-wrapper">
+                      <p class="title">${title}</p>
+                      <p class="moredetails">${authorName} -${convertTimestamp(
+              createdAt
+            )}</p>
+                  </div>
+              </div>
+              <div class="middle">
+                 ${description}
+              </div>
+              <div class="end">
+            
+                
+              <button id="likeBtn"  data-post-id="${postId}">
+                Like (${likeCount})</button>
+                
+                <button class="deleteBtn" data-post-id="${postId}">Delete</button>
+                  <button class="editPost" data-post-id="${postId}">Edit</button>
+              </div>
+          </div>`;
+          });
+        }
 
         attachedEventListeners();
       }
@@ -852,37 +814,47 @@ const blogPost = (userId) => {
   }
 
   // editpost
+  const updateBtn = document.getElementById("Update-Btn");
+  const CancelBtn = document.getElementById("Cancel-Btn");
+  const postBtn = document.getElementById("postBtn");
+  let editingPostId = null;
+
   async function editPost(postID) {
+    editingPostId = postID;
     window.scrollTo(0, 0);
     const title = document.getElementById("postTitle");
     const desc = document.getElementById("postDesc");
-    const updateBtn = document.getElementById("Update-Btn");
-    const CancelBtn = document.getElementById("Cancel-Btn");
-    const postBtn = document.getElementById("postBtn");
     postBtn.classList.add("hide");
     updateBtn.classList.remove("hide");
     CancelBtn.classList.remove("hide");
 
+    
     const postDocRef = doc(db, "posts", postID);
     const postSnapshot = await getDoc(postDocRef);
     const postData = postSnapshot.data();
     console.log(postSnapshot.data());
     const postTitle = postData.title;
     const postDesc = postData.description;
-
+    
     title.value = postTitle;
     desc.value = postDesc;
 
-    updateBtn &&
-      updateBtn.addEventListener("click", async () => {
-        console.log("u[dated hojayega");
-        const postDocRef = doc(db, "posts", postID);
+    console.log(title, desc);
+  }
+  updateBtn &&
+    updateBtn.addEventListener("click", async () => {
+      console.log("u[dated hojayega");
+      const title = document.getElementById("postTitle");
+      const desc = document.getElementById("postDesc");
+      if(editingPostId){
+        const postDocRef = doc(db, "posts", editingPostId);
         showLoader();
         await updateDoc(postDocRef, {
           title: title.value,
           description: desc.value,
           createdAt: serverTimestamp(),
         });
+
         hideLoader();
         Swal.fire({
           icon: "success",
@@ -890,23 +862,25 @@ const blogPost = (userId) => {
         });
         title.value = "";
         desc.value = "";
+        editingPostId = null;
         postBtn.classList.remove("hide");
         updateBtn.classList.add("hide");
         CancelBtn.classList.add("hide");
-      });
+      }
+    });
 
-    CancelBtn &&
-      CancelBtn.addEventListener("click", () => {
-        postBtn.classList.remove("hide");
-        updateBtn.classList.add("hide");
-        CancelBtn.classList.add("hide");
-        title.value = "";
-        desc.value = "";
-        return;
-      });
-
-    console.log(title, desc);
-  }
+  CancelBtn &&
+    CancelBtn.addEventListener("click", () => {
+     if(editingPostId){
+      const title = document.getElementById("postTitle");
+      const desc = document.getElementById("postDesc");
+      postBtn.classList.remove("hide");
+      updateBtn.classList.add("hide");
+      CancelBtn.classList.add("hide");
+      title.value = "";
+      desc.value = "";
+     } 
+    });
 
   function convertTimestamp(timestamp) {
     const date = timestamp.toDate();
@@ -926,43 +900,19 @@ const blogPost = (userId) => {
   // unsubscribe();
 };
 
-// like post btn
-
-// console.log(document.getElementById("deletePost"));
-
-// Remember to unsubscribe when you're done with the listener (if needed)
-// unsubscribe();
-
-//   function deletePost(postId) {
-//     Swal.fire({
-//         icon: "warning",
-//         title: "Are you sure you want to delete this post?",
-//         showCancelButton: true,
-//         confirmButtonText: "Yes, delete it!",
-//         cancelButtonText: "Cancel"
-//     }).then(async (result) => {
-//         if (result.isConfirmed) {
-//             try {
-//                 // Here, you can call a function to delete the post using the postId
-//                 await deletePostFunction(postId); // Replace with the actual delete function
-
-//                 Swal.fire({
-//                     icon: "success",
-//                     title: "Post deleted successfully!"
-//                 });
-//             } catch (error) {
-//                 console.error("Error deleting post:", error);
-//                 Swal.fire({
-//                     icon: "error",
-//                     title: "An error occurred while deleting the post."
-//                 });
-//             }
-//         }
-//     });
-// }
-
-if(location.pathname === "/home.html"){
-  blogPost(userId)
-}
-
-export { hideLoader,showLoader,serverTimestamp, getFirestore, auth, app , getDoc,updateDoc,doc,deleteDoc,db,collection,onSnapshot };
+blogPost(userId);
+export {
+  hideLoader,
+  showLoader,
+  serverTimestamp,
+  getFirestore,
+  auth,
+  app,
+  getDoc,
+  updateDoc,
+  doc,
+  deleteDoc,
+  db,
+  collection,
+  onSnapshot,
+};

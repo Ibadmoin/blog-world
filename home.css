@@ -190,10 +190,11 @@
 
 
 .img-wrapper{
-    /* background: green; */
     width: 70px;
     height: 70px;
     border-radius: 5px;
+    display: flex;
+    justify-content: center;
 }
 .img-wrapper img{
     width: 100%;
