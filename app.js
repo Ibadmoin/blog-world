@@ -37,12 +37,12 @@ import {
   deleteObject,
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 const firebaseConfig = {
-  apiKey: "AIzaSyB9bTCCt8IsYUh664agg5To4wGzugS4eWk",
-  authDomain: "hackathon2023-cdf55.firebaseapp.com",
-  projectId: "hackathon2023-cdf55",
-  storageBucket: "hackathon2023-cdf55.appspot.com",
-  messagingSenderId: "341882105755",
-  appId: "1:341882105755:web:da94799c8da06087b4bb3e"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 
 // Initialize Firebase
