@@ -53,7 +53,7 @@ const unsub = onSnapshot(postDocRef,(querySnapshot)=>{
                 </div>
                 <div class="detail-wrapper">
                     <p class="title">${title}</p>
-                    <p class="moredetails">${authorName} -august 1994</p>
+                    <p class="moredetails">${authorName} -${convertTimestamp(createdAt)}</p>
                 </div>
             </div>
             <div class="middle">
@@ -62,8 +62,6 @@ const unsub = onSnapshot(postDocRef,(querySnapshot)=>{
             <div class="end">
           
               
-            <button id="likeBtn"  data-post-id="${postId}">
-              Like (${likeCount})</button>
               ${
                 currentUser === authorId ?`<button class="deleteBtn" data-post-id="${postId}">Delete</button>
                 <button class="editPost" data-post-id="${postId}">Edit</button>` : ""

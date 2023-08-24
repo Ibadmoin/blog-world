@@ -42,8 +42,9 @@ const firebaseConfig = {
   projectId: "hackathon2023-cdf55",
   storageBucket: "hackathon2023-cdf55.appspot.com",
   messagingSenderId: "341882105755",
-  appId: "1:341882105755:web:da94799c8da06087b4bb3e",
+  appId: "1:341882105755:web:da94799c8da06087b4bb3e"
 };
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 //   Initialize auth
@@ -70,6 +71,7 @@ var flag = true;
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // flag = true;
+    localStorage.setItem("uid",user.uid)
     getUserData(user.uid);
     // console.log(flag);
     // console.log("user login hai");
@@ -265,7 +267,6 @@ loginBtn &&
         const user = userCredential.user;
         // console.log(user);
         const uid = user.uid;
-        localStorage.setItem("uid", uid);
         await Swal.fire({
           title: "Logged In successfully!",
           text: "Please Wait.",
@@ -413,14 +414,14 @@ updateProfile &&
     let username = localStorage.getItem("userName");
 
     // validating passwoprd fields
-    if (password !== oldPass.value) {
-      hideLoader();
-      Swal.fire({
-        icon: "error",
-        title: "Incorrect Old Password!",
-      });
-      return;
-    }
+    // if (password !== oldPass.value) {
+    //   hideLoader();
+    //   Swal.fire({
+    //     icon: "error",
+    //     title: "Incorrect Old Password!",
+    //   });
+    //   return;
+    // }
 
     if (rPass.value !== pass.value) {
       hideLoader();
@@ -442,6 +443,7 @@ updateProfile &&
 
     // updating firebase auth Pass
     const user = auth.currentUser;
+    console.log(user);
     try {
       // Re-authenticate the user with their current password
       const credentials = EmailAuthProvider.credential(
@@ -461,14 +463,23 @@ updateProfile &&
       // Update other user profile data
       const washingtonRef = doc(db, "users", uid);
       const updateData = {
-        password: pass.value,
+        
       };
+      
       if (username) {
         updateData.userName = username;
       }
       if (imageUrl) {
         updateData.picture = imageUrl;
       }
+
+      if (pass.value) {
+        updateData.password = pass.value;
+        
+      }
+
+        
+      
 
       await updateDoc(washingtonRef, updateData);
       hideLoader();
@@ -482,7 +493,7 @@ updateProfile &&
       console.error("Error updating password:", error);
       Swal.fire({
         icon: "error",
-        title: "Error updating password",
+        title: "Old password is not correct!",
       });
     }
   });
@@ -739,8 +750,7 @@ const blogPost = (userId) => {
               <div class="end">
             
                 
-              <button id="likeBtn"  data-post-id="${postId}">
-                Like (${likeCount})</button>
+           
                 
                 <button class="deleteBtn" data-post-id="${postId}">Delete</button>
                   <button class="editPost" data-post-id="${postId}">Edit</button>
@@ -903,7 +913,6 @@ const blogPost = (userId) => {
   // Remember to unsubscribe when you're done with the listener (if needed)
   // unsubscribe();
 };
-
 blogPost(userId);
 export {
   hideLoader,

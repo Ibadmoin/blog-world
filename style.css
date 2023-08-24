@@ -23,6 +23,7 @@
     color:white;
     background: var(--primary-color);
     margin: 10px auto;
+    cursor: pointer;
   }
   .loader-container {
     position: fixed;

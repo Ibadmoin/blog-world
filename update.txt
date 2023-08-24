@@ -1,0 +1,2 @@
+   // <button id="likeBtn"  data-post-id="${postId}">
+              //   Like (${likeCount})</button>  like not added yet! 
